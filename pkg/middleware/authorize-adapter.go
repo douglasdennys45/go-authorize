@@ -28,6 +28,9 @@ func (md *middleware) Authorize(ctx *fiber.Ctx) error {
 	if err != nil {
 		return response.RenderJSON(ctx, err.Error(), 403)
 	}
+	if ctx.GetReqHeaders()["X-Access-Token-Api"] == nil {
+		return response.RenderJSON(ctx, "Não autorizado", 403)
+	}
 	req.Header.Set("X-Access-Token-Api", ctx.GetReqHeaders()["X-Access-Token-Api"][0])
 	client := &http.Client{}
 	resp, err := client.Do(req)
