@@ -1,0 +1,8 @@
+# folders
+.idea
+bin
+
+# files
+.env
+coverage.*
+data.http
