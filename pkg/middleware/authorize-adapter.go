@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/douglasdennys45/go-authorize/pkg/response"
+	"github.com/douglasdennys45/go-shared/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 

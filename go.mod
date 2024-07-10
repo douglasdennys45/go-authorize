@@ -2,7 +2,10 @@ module github.com/douglasdennys45/go-authorize
 
 go 1.22.4
 
-require github.com/gofiber/fiber/v2 v2.52.5
+require (
+	github.com/douglasdennys45/go-shared v0.0.1
+	github.com/gofiber/fiber/v2 v2.52.5
+)
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
