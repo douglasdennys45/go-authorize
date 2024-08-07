@@ -17,10 +17,15 @@ func NewAuthorizeAdapter(url string) *middleware {
 	return &middleware{url}
 }
 
+type responseData struct {
+	IsAuthorized bool   `json:"isAuthorized"`
+	HashMap      string `json:"hashMap"`
+}
+
 type responses struct {
-	RequestId string `json:"requestId"`
-	Timestamp string `json:"timestamp"`
-	Data      bool   `json:"data"`
+	RequestId string       `json:"requestId"`
+	Timestamp string       `json:"timestamp"`
+	Data      responseData `json:"data"`
 }
 
 func (md *middleware) Authorize(ctx *fiber.Ctx) error {
@@ -50,8 +55,9 @@ func (md *middleware) Authorize(ctx *fiber.Ctx) error {
 	if resp.StatusCode != 200 {
 		return response.RenderJSON(ctx, err.Error(), 403)
 	}
-	if !data.Data {
+	if !data.Data.IsAuthorized {
 		return response.RenderJSON(ctx, "Não autorizado", 403)
 	}
+	ctx.Set("X-Revision-HashMap", data.Data.HashMap)
 	return ctx.Next()
 }
