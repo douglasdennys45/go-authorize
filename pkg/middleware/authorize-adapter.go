@@ -18,9 +18,9 @@ func NewAuthorizeAdapter(url string) *middleware {
 }
 
 type responseData struct {
-	IsAuthorized bool   `json:"isAuthorized"`
-	HashMap      string `json:"hashMap"`
-	Who          string `json:"who"`
+	IsAuthorized bool                   `json:"isAuthorized"`
+	HashMap      string                 `json:"hashMap"`
+	Who          map[string]interface{} `json:"who"`
 }
 
 type responses struct {
@@ -56,17 +56,32 @@ func (md *middleware) Authorize(ctx *fiber.Ctx) error {
 	if resp.StatusCode != 200 {
 		return response.RenderJSON(ctx, "Unauthorized", 403)
 	}
-	switch data := data.Data.(type) {
-	case responseData:
-		if !data.IsAuthorized {
-			return response.RenderJSON(ctx, "Unauthorized", 403)
-		}
-		ctx.Set("X-Revision-HashMap", data.HashMap)
-		ctx.Set("X-Who", data.Who)
-	case bool:
-		if !data {
-			return response.RenderJSON(ctx, "Unauthorized", 403)
-		}
+
+	responseMap, ok := data.Data.(map[string]interface{})
+	if !ok {
+		return response.RenderJSON(ctx, "Invalid response format", 403)
 	}
+
+	jsonData, err := json.Marshal(responseMap)
+	if err != nil {
+		return response.RenderJSON(ctx, "Error processing response", 500)
+	}
+
+	var responseData responseData
+	if err := json.Unmarshal(jsonData, &responseData); err != nil {
+		return response.RenderJSON(ctx, "Invalid response format", 403)
+	}
+
+	if !responseData.IsAuthorized {
+		return response.RenderJSON(ctx, "Unauthorized", 403)
+	}
+
+	ctx.Set("X-Revision-HashMap", responseData.HashMap)
+	whoJSON, err := json.Marshal(responseData.Who)
+	if err != nil {
+		return response.RenderJSON(ctx, "Error converting who to JSON", 500)
+	}
+	ctx.Request().Header.Set("X-Who", string(whoJSON))
+
 	return ctx.Next()
 }
