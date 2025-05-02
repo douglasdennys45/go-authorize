@@ -20,6 +20,7 @@ func NewAuthorizeAdapter(url string) *middleware {
 type responseData struct {
 	IsAuthorized bool   `json:"isAuthorized"`
 	HashMap      string `json:"hashMap"`
+	Who          string `json:"who"`
 }
 
 type responses struct {
@@ -34,7 +35,7 @@ func (md *middleware) Authorize(ctx *fiber.Ctx) error {
 		return response.RenderJSON(ctx, err.Error(), 403)
 	}
 	if ctx.GetReqHeaders()["X-Access-Token-Api"] == nil {
-		return response.RenderJSON(ctx, "Não autorizado", 403)
+		return response.RenderJSON(ctx, "Unauthorized", 403)
 	}
 	req.Header.Set("X-Access-Token-Api", ctx.GetReqHeaders()["X-Access-Token-Api"][0])
 	client := &http.Client{}
@@ -53,17 +54,18 @@ func (md *middleware) Authorize(ctx *fiber.Ctx) error {
 		return response.RenderJSON(ctx, err.Error(), 403)
 	}
 	if resp.StatusCode != 200 {
-		return response.RenderJSON(ctx, err.Error(), 403)
+		return response.RenderJSON(ctx, "Unauthorized", 403)
 	}
 	switch data := data.Data.(type) {
 	case responseData:
 		if !data.IsAuthorized {
-			return response.RenderJSON(ctx, "Não autorizado", 403)
+			return response.RenderJSON(ctx, "Unauthorized", 403)
 		}
 		ctx.Set("X-Revision-HashMap", data.HashMap)
+		ctx.Set("X-Who", data.Who)
 	case bool:
 		if !data {
-			return response.RenderJSON(ctx, "Não autorizado", 403)
+			return response.RenderJSON(ctx, "Unauthorized", 403)
 		}
 	}
 	return ctx.Next()
