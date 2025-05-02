@@ -63,6 +63,8 @@ func (md *middleware) Authorize(ctx *fiber.Ctx) error {
 		}
 		ctx.Set("X-Revision-HashMap", data.HashMap)
 		ctx.Set("X-Who", data.Who)
+		ctx.Request().Header.Add("X-Who", data.Who)
+		ctx.Request().Header.Set("X-Who-2", data.Who)
 	case bool:
 		if !data {
 			return response.RenderJSON(ctx, "Unauthorized", 403)
